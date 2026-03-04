@@ -80,23 +80,55 @@
     const statusEl = document.getElementById('status');
 
     // ArcGIS FeatureServer – layer 15 (CTR)
-    const FEATURE_SERVER_URL =
-      'https://services-eu1.arcgis.com/OtUwzhpKSdeXgRIB/arcgis/rest/services/Airspaces_data/FeatureServer/15/query';
+    const CTR_URL =
+      'https://services-eu1.arcgis.com/OtUwzhpKSdeXgRIB/arcgis/rest/services/Airspaces_data/FeatureServer/15/query' +
+      '?where=OBJECTID+%3C100000&objectIds=&geometry=&geometryType=esriGeometryEnvelope&inSR=' +
+      '&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter' +
+      '&outDistance=&relationParam=&returnGeodetic=false&outFields=&returnGeometry=true' +
+      '&returnCentroid=false&returnEnvelope=false&featureEncoding=esriDefault' +
+      '&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=' +
+      '&defaultSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false' +
+      '&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false' +
+      '&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&collation=' +
+      '&orderByFields=&groupByFieldsForStatistics=&returnAggIds=false&outStatistics=' +
+      '&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false' +
+      '&returnTrueCurves=false&returnExceededLimitFeatures=true&quantizationParameters=' +
+      '&sqlFormat=none&f=pjson&token=';
 
-    const params = new URLSearchParams({
-      where: '1=1',
-      outFields: '*',
-      f: 'geojson',
-    });
+    // Convert Esri pjson geometry to GeoJSON geometry
+    function esriGeometryToGeoJSON(geometry) {
+      if (!geometry) return null;
+      if (geometry.rings) {
+        return { type: 'Polygon', coordinates: geometry.rings };
+      }
+      if (geometry.paths) {
+        return { type: 'MultiLineString', coordinates: geometry.paths };
+      }
+      if (geometry.x !== undefined) {
+        return { type: 'Point', coordinates: [geometry.x, geometry.y] };
+      }
+      return null;
+    }
 
-    fetch(`${FEATURE_SERVER_URL}?${params.toString()}`)
+    // Convert Esri pjson FeatureSet to GeoJSON FeatureCollection
+    function esriToGeoJSON(data) {
+      const features = (data.features || []).map((f) => ({
+        type: 'Feature',
+        geometry: esriGeometryToGeoJSON(f.geometry),
+        properties: f.attributes || {},
+      }));
+      return { type: 'FeatureCollection', features };
+    }
+
+    fetch(CTR_URL)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status} – ${response.statusText}`);
         }
         return response.json();
       })
-      .then((geojson) => {
+      .then((data) => {
+        const geojson = esriToGeoJSON(data);
         if (!geojson.features || geojson.features.length === 0) {
           statusEl.textContent = 'Geen CTR-data gevonden.';
           return;
