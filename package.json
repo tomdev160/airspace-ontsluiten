@@ -1,0 +1,25 @@
+{
+  "name": "airspace-ontsluiten",
+  "version": "1.0.0",
+  "description": "ontsluit airspaces van geodienst",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx http-server -p 8080 -o",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomdev160/airspace-ontsluiten.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tomdev160/airspace-ontsluiten/issues"
+  },
+  "homepage": "https://github.com/tomdev160/airspace-ontsluiten#readme",
+  "dependencies": {
+    "leaflet": "^1.9.4"
+  }
+}
